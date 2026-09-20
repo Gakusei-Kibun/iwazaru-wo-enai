@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#111827">
+<title>言わざるを得ない｜ポイント管理</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,"Noto Sans JP",sans-serif;background:#f5f5f5;color:#111827}
+main{max-width:680px;margin:auto;padding:18px}
+header{display:block;margin-bottom:12px}
+h1{font-size:22px;margin:0}p{margin:4px 0;color:#6b7280;font-size:13px}
+.header-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+button,input{font:inherit}button{min-height:46px;border:1px solid #d1d5db;background:white;border-radius:12px;padding:8px 12px;cursor:pointer;font-weight:600}
+button:active{transform:scale(.98)}.danger{color:#b91c1c}
+.setup,.rule,.player{background:white;border:1px solid #e5e7eb;border-radius:16px;padding:14px;margin-bottom:12px}
+.row{display:flex;gap:8px;flex-wrap:wrap}.row>*{flex:1;min-width:120px}
+input{width:100%;padding:11px;border:1px solid #d1d5db;border-radius:10px}
+.players{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.player{margin:0;padding:14px}.top{display:block;text-align:center}.name{font-weight:700;font-size:16px;display:block}.score{font-size:38px;font-weight:800;line-height:1.15;display:block;margin:6px 0}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:8px}
+.actions button{font-size:20px;padding:6px}
+.primary{width:100%;background:#111827;color:white;border-color:#111827}
+.rules{font-size:13px;line-height:1.7;color:#4b5563}
+.lost{border-color:#ef4444;background:#fff1f2}.lost .score{color:#b91c1c}
+.hidden{display:none}.small{font-size:12px}
+@media(max-width:380px){.players{grid-template-columns:1fr}.score{font-size:34px}}
+@media(min-width:600px){.players{grid-template-columns:repeat(4,1fr)}}
+</style>
+</head>
+<body>
+<main>
+<header>
+  <div><h1>言わざるを得ない</h1><p>ポイント管理</p></div>
+  <div class="row" style="justify-content:flex-end;flex:0 0 auto"><button id="undo">↶ 戻る</button><button id="scoreReset">ポイントリセット</button><button id="reset" class="danger">ゲーム全体をリセット</button></div>
+</header>
+
+<section class="setup" id="setup">
+  <strong>プレイヤー設定</strong>
+  <div id="nameInputs" style="margin-top:10px"></div>
+  <div class="row" style="margin-top:10px">
+    <button id="add">＋プレイヤー追加</button>
+    <button id="start" class="primary">ゲーム開始</button>
+  </div>
+</section>
+
+<section id="game" class="hidden">
+  <div class="players" id="players"></div>
+
+  <section class="setup" style="margin-top:12px">
+    <strong>ゲーム結果を反映</strong>
+    <div class="row" style="margin-top:10px">
+      <select id="action" style="padding:11px;border:1px solid #d1d5db;border-radius:10px;flex:1;min-width:180px">
+        <option value="normal">普通に言い切り</option>
+        <option value="cover">被せ成功</option>
+        <option value="failed">被せ失敗</option>
+      </select>
+      <select id="who" style="padding:11px;border:1px solid #d1d5db;border-radius:10px;flex:1;min-width:180px"></select>
+    </div>
+    <div id="coverOptions" class="hidden" style="margin-top:10px;padding:12px;border:1px solid #e5e7eb;border-radius:12px;background:#f9fafb">
+      <strong>被せられた人</strong>
+      <select id="victim" style="width:100%;margin-top:6px;padding:11px;border:1px solid #d1d5db;border-radius:10px"></select>
+      <div style="margin-top:14px"><strong>被せ成功</strong>
+        <div class="small" style="margin:3px 0 8px;color:#6b7280">被せに成功した人にチェックを入れてください（複数選択OK）</div>
+        <div id="coverPlayers"></div>
+      </div>
+    </div>
+    <button id="apply" class="primary" style="margin-top:10px">ポイントに反映</button>
+  </section>
+
+  <section class="rule">
+    <strong>ルール</strong>
+    <div class="rules">
+      普通に言い切り：本人＋1P、他の全員−1P<br>
+      被せ成功：成功者＋2P、被せられた人−2P、それ以外−1P<br>
+      被せ失敗：失敗した人−2P<br>
+      ポイントは＋5P〜−5P。−5Pで負け。
+    </div>
+  </section>
+</section>
+</main>
+
+<script>
+const state={names:["プレイヤー1","プレイヤー2","プレイヤー3","プレイヤー4"],scores:[],started:false};
+const history=[];
+const $=id=>document.getElementById(id);
+function esc(s){return s.replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function clamp(n){return Math.max(-5,Math.min(5,n))}
+function saveHistory(){history.push(state.scores.slice()); if(history.length>100) history.shift();}
+function undo(){
+  if(!state.started || history.length===0){alert("戻せる操作がありません。");return;}
+  state.scores=history.pop(); render();
+}
+function resetScores(){
+  if(!state.started)return;
+  if(confirm("ポイントだけ0Pにリセットしますか？")){
+    saveHistory();
+    state.scores=state.scores.map(()=>0);
+    render();
+  }
+}
+function renderSetup(){
+  $("nameInputs").innerHTML=state.names.map((n,i)=>`
+    <div style="margin-bottom:8px"><input data-name="${i}" value="${esc(n)}" aria-label="プレイヤー${i+1}の名前"></div>`).join("");
+}
+function render(){
+  $("players").innerHTML=state.names.map((n,i)=>{
+    const s=state.scores[i],lost=s<=-5;
+    return `<article class="player ${lost?"lost":""}">
+      <div class="top"><span class="name">${esc(n)}</span><span class="score">${s>0?"+":""}${s}P</span></div>
+      ${lost?'<div style="font-weight:700;color:#b91c1c;margin-top:4px">負け</div>':""}
+      <div class="actions">
+        <button data-i="${i}" data-d="-1">−1P</button>
+        <button data-i="${i}" data-d="1">＋1P</button>
+      </div>
+    </article>`;
+  }).join("");
+  $("who").innerHTML=state.names.map((n,i)=>`<option value="${i}">${esc(n)}</option>`).join("");
+  renderCoverOptions();
+}
+function renderCoverOptions(){
+  const victim=+$('victim').value;
+  $("victim").innerHTML=state.names.map((n,i)=>`<option value="${i}">${esc(n)}</option>`).join("");
+  if(Number.isInteger(victim) && victim>=0 && victim<state.names.length) $("victim").value=victim;
+  $("coverPlayers").innerHTML=state.names.map((n,i)=>`
+    <label style="display:flex;align-items:center;gap:9px;padding:9px 4px;font-size:16px;cursor:pointer;${i===+$('victim').value?"opacity:.45":""}">
+      <input type="checkbox" class="cover-check" value="${i}" ${i===+$('victim').value?"disabled":""}>
+      <span>${esc(n)}</span>
+    </label>`).join("");
+}
+$("add").onclick=()=>{
+  if(state.names.length>=8)return;
+  state.names.push("プレイヤー"+(state.names.length+1));renderSetup();
+};
+$("start").onclick=()=>{
+  const inputs=[...document.querySelectorAll("[data-name]")];
+  const names=inputs.map((x,i)=>x.value.trim()||"プレイヤー"+(i+1));
+  state.names=names;state.scores=names.map(()=>0);state.started=true;
+  $("setup").classList.add("hidden");$("game").classList.remove("hidden");render();
+};
+$("action").addEventListener("change",()=>{
+  const cover=$("action").value==="cover";
+  $("coverOptions").classList.toggle("hidden",!cover);
+  $("who").classList.toggle("hidden",cover);
+  if(cover) renderCoverOptions();
+});
+$("victim").addEventListener("change",()=>{ if($("action").value==="cover") renderCoverOptions(); });
+$("players").addEventListener("click",e=>{
+  const b=e.target.closest("[data-i]");if(!b)return;
+  const i=+b.dataset.i;state.scores[i]=clamp(state.scores[i]+(+b.dataset.d));render();
+});
+$("apply").onclick=()=>{
+  const target=+$("who").value,action=$("action").value;
+  saveHistory();
+  if(action==="normal"){
+    state.scores=state.scores.map((s,i)=>clamp(s+(i===target?1:-1)));
+  }else if(action==="cover"){
+    const coverers=[...document.querySelectorAll(".cover-check:checked")].map(x=>+x.value);
+    const v=+$('victim').value;
+    if(coverers.length===0){history.pop();alert("被せに成功した人を1人以上チェックしてください。");return}
+    if(coverers.includes(v)){history.pop();alert("被せられた人にはチェックを入れられません。");return}
+    state.scores=state.scores.map((s,i)=>clamp(s+(coverers.includes(i)?2:i===v?-2:-1)));
+  }else{
+    state.scores[target]=clamp(state.scores[target]-2);
+  }
+  render();
+};
+$("undo").onclick=undo;
+$("scoreReset").onclick=resetScores;
+$("reset").onclick=()=>{
+  if(confirm("ゲームをリセットしますか？")){
+    state.names=["プレイヤー1","プレイヤー2","プレイヤー3","プレイヤー4"];
+    state.scores=[];state.started=false;history.length=0;
+    $("setup").classList.remove("hidden");$("game").classList.add("hidden");renderSetup();
+  }
+};
+renderSetup();
+</script>
+</body>
+</html>
