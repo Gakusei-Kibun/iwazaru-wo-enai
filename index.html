@@ -3,79 +3,96 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#111827">
+<meta name="theme-color" content="#f8f5f2">
 <title>言わざるを得ない｜ポイント管理</title>
 <style>
-*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,"Noto Sans JP",sans-serif;background:#f5f5f5;color:#111827}
-main{max-width:680px;margin:auto;padding:18px}
-header{display:block;margin-bottom:12px}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,"Noto Sans JP",sans-serif;background:#f8f5f2;color:#374151}
+main{max-width:680px;margin:auto;padding:16px}
+header{margin-bottom:12px}
 h1{font-size:22px;margin:0}p{margin:4px 0;color:#6b7280;font-size:13px}
 .header-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
-button,input{font:inherit}button{min-height:46px;border:1px solid #d1d5db;background:white;border-radius:12px;padding:8px 12px;cursor:pointer;font-weight:600}
-button:active{transform:scale(.98)}.danger{color:#b91c1c}
-.setup,.rule,.player{background:white;border:1px solid #e5e7eb;border-radius:16px;padding:14px;margin-bottom:12px}
+button,input,select{font:inherit}button{min-height:46px;border:1px solid #ddd6d0;background:#fff;border-radius:14px;padding:9px 12px;cursor:pointer;font-weight:700;color:#374151}
+button:active{transform:scale(.98)}button:disabled{opacity:.45;cursor:default}.danger{color:#b91c1c}
+.setup,.rule{background:#fff;border:1px solid #e7e1dc;border-radius:18px;padding:14px;margin-bottom:12px}
 .row{display:flex;gap:8px;flex-wrap:wrap}.row>*{flex:1;min-width:120px}
-input{width:100%;padding:11px;border:1px solid #d1d5db;border-radius:10px}
+input{width:100%;padding:11px;border:1px solid #d8d2cc;border-radius:11px;background:#fff}
 .players{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.player{margin:0;padding:14px}.top{display:block;text-align:center}.name{font-weight:700;font-size:16px;display:block}.score{font-size:38px;font-weight:800;line-height:1.15;display:block;margin:6px 0}
-.actions{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:8px}
-.actions button{font-size:20px;padding:6px}
-.primary{width:100%;background:#111827;color:white;border-color:#111827}
-.rules{font-size:13px;line-height:1.7;color:#4b5563}
-.lost{border-color:#ef4444;background:#fff1f2}.lost .score{color:#b91c1c}
-.hidden{display:none}.small{font-size:12px}
-@media(max-width:380px){.players{grid-template-columns:1fr}.score{font-size:34px}}
+.player{margin:0;padding:14px;border-radius:18px;border:2px solid transparent;min-width:0}
+.top{text-align:center}.name{font-weight:800;font-size:16px;display:block}.score{font-size:38px;font-weight:800;line-height:1.15;display:block;margin:6px 0}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:8px}.actions button{font-size:20px;padding:6px;background:rgba(255,255,255,.75)}
+.game-actions{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+.game-action{min-height:62px;font-size:17px;border:2px solid transparent}
+.normal-btn{background:#dff3e6;border-color:#b8dfc5}.cover-btn{background:#dfeefa;border-color:#b9d5ea}.failed-btn{background:#fbe3e5;border-color:#edc0c5}
+.panel{background:#fff;border:1px solid #e7e1dc;border-radius:18px;padding:14px;margin-top:12px}
+.panel-title{font-size:17px;font-weight:800;margin-bottom:10px}.hint{font-size:12px;color:#6b7280;margin:-4px 0 10px}
+.choice-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.choice{min-height:52px;background:#fff;border:2px solid #e5e0dc;border-radius:14px;padding:9px;font-weight:800}
+.choice.selected{border-color:#7c9b91;background:#e7f1ed}
+.choice.disabled{opacity:.4;cursor:default}
+.check-list{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.check-item{display:flex;align-items:center;gap:8px;min-height:52px;padding:9px 10px;border:2px solid #e5e0dc;border-radius:14px;background:#fff;font-weight:800;cursor:pointer}
+.check-item input{width:20px;height:20px;margin:0;accent-color:#7c9b91}.check-item:has(input:checked){border-color:#7c9b91;background:#e7f1ed}
+.confirm{width:100%;margin-top:12px;background:#eee8e2;border-color:#d8d0c8}.confirm:enabled{background:#e8dfd6;border-color:#c9bdb1}
+.back-action{width:100%;margin-top:8px;background:#faf9f7}
+.rules{font-size:13px;line-height:1.7;color:#4b5563}.hidden{display:none}.small{font-size:12px}
+.lost{box-shadow:inset 0 0 0 2px #e9a8ae}.lost .score{color:#b91c1c}
+@media(max-width:380px){.players{grid-template-columns:1fr}.score{font-size:34px}.game-actions{grid-template-columns:1fr}.choice-grid,.check-list{grid-template-columns:1fr}}
 @media(min-width:600px){.players{grid-template-columns:repeat(4,1fr)}}
 </style>
 </head>
 <body>
 <main>
 <header>
-  <div><h1>言わざるを得ない</h1><p>ポイント管理</p></div>
-  <div class="row" style="justify-content:flex-end;flex:0 0 auto"><button id="undo">↶ 戻る</button><button id="scoreReset">ポイントリセット</button><button id="reset" class="danger">ゲーム全体をリセット</button></div>
+  <h1>言わざるを得ない</h1><p>ポイント管理</p>
+  <div class="row" style="margin-top:10px">
+    <button id="undo">↶ 戻る</button><button id="scoreReset">ポイントリセット</button><button id="reset" class="danger">ゲーム全体をリセット</button>
+  </div>
 </header>
 
 <section class="setup" id="setup">
   <strong>プレイヤー設定</strong>
   <div id="nameInputs" style="margin-top:10px"></div>
-  <div class="row" style="margin-top:10px">
-    <button id="add">＋プレイヤー追加</button>
-    <button id="start" class="primary">ゲーム開始</button>
-  </div>
+  <div class="row" style="margin-top:10px"><button id="add">＋プレイヤー追加</button><button id="start" class="primary" style="background:#6f8279;color:white;border-color:#6f8279">ゲーム開始</button></div>
 </section>
 
 <section id="game" class="hidden">
   <div class="players" id="players"></div>
 
-  <section class="setup" style="margin-top:12px">
-    <strong>ゲーム結果を反映</strong>
-    <div class="row" style="margin-top:10px">
-      <select id="action" style="padding:11px;border:1px solid #d1d5db;border-radius:10px;flex:1;min-width:180px">
-        <option value="normal">普通に言い切り</option>
-        <option value="cover">被せ成功</option>
-        <option value="failed">被せ失敗</option>
-      </select>
-      <select id="who" style="padding:11px;border:1px solid #d1d5db;border-radius:10px;flex:1;min-width:180px"></select>
+  <div class="game-actions">
+    <button class="game-action normal-btn" id="normalAction">言い切り</button>
+    <button class="game-action cover-btn" id="coverAction">被せ成功</button>
+    <button class="game-action failed-btn" id="failedAction">被せ失敗</button>
+  </div>
+
+  <section id="normalPanel" class="panel hidden">
+    <div class="panel-title">誰が？</div>
+    <div class="hint">選んだ時点でポイントが反映されます</div>
+    <div class="choice-grid" id="normalChoices"></div>
+  </section>
+
+  <section id="coverPanel" class="panel hidden">
+    <div class="panel-title">被せられた人は？</div>
+    <div class="choice-grid" id="victimChoices"></div>
+    <div id="covererArea" class="hidden" style="margin-top:16px">
+      <div class="panel-title">被せた人は？</div>
+      <div class="hint">成功した人を複数選択できます</div>
+      <div class="check-list" id="covererChoices"></div>
+      <button id="coverConfirm" class="confirm" disabled>決定してポイント反映</button>
+      <button id="coverBack" class="back-action">被せられた人を選び直す</button>
     </div>
-    <div id="coverOptions" class="hidden" style="margin-top:10px;padding:12px;border:1px solid #e5e7eb;border-radius:12px;background:#f9fafb">
-      <strong>被せられた人</strong>
-      <select id="victim" style="width:100%;margin-top:6px;padding:11px;border:1px solid #d1d5db;border-radius:10px"></select>
-      <div style="margin-top:14px"><strong>被せ成功</strong>
-        <div class="small" style="margin:3px 0 8px;color:#6b7280">被せに成功した人にチェックを入れてください（複数選択OK）</div>
-        <div id="coverPlayers"></div>
-      </div>
-    </div>
-    <button id="apply" class="primary" style="margin-top:10px">ポイントに反映</button>
+  </section>
+
+  <section id="failedPanel" class="panel hidden">
+    <div class="panel-title">誰が失敗？</div>
+    <div class="hint">失敗した人を複数選択できます</div>
+    <div class="check-list" id="failedChoices"></div>
+    <button id="failedConfirm" class="confirm" disabled>決定してポイント反映</button>
   </section>
 
   <section class="rule">
     <strong>ルール</strong>
-    <div class="rules">
-      普通に言い切り：本人＋1P、他の全員−1P<br>
-      被せ成功：成功者＋2P、被せられた人−2P、それ以外−1P<br>
-      被せ失敗：失敗した人−2P<br>
-      ポイントは＋5P〜−5P。−5Pで負け。
-    </div>
+    <div class="rules">言い切り：本人＋1P、他の全員−1P<br>被せ成功：成功者＋2P、被せられた人−2P、それ以外−1P<br>被せ失敗：失敗した人−2P<br>ポイントは＋5P〜−5P。−5Pで負け。</div>
   </section>
 </section>
 </main>
@@ -83,97 +100,70 @@ input{width:100%;padding:11px;border:1px solid #d1d5db;border-radius:10px}
 <script>
 const state={names:["プレイヤー1","プレイヤー2","プレイヤー3","プレイヤー4"],scores:[],started:false};
 const history=[];
+const colors=["#fde8e8","#e5f1ff","#e9f7e9","#fff1d6","#eee8ff","#e5f7f4","#f8e8f4","#edf0d8"];
 const $=id=>document.getElementById(id);
 function esc(s){return s.replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 function clamp(n){return Math.max(-5,Math.min(5,n))}
-function saveHistory(){history.push(state.scores.slice()); if(history.length>100) history.shift();}
-function undo(){
-  if(!state.started || history.length===0){alert("戻せる操作がありません。");return;}
-  state.scores=history.pop(); render();
-}
-function resetScores(){
-  if(!state.started)return;
-  if(confirm("ポイントだけ0Pにリセットしますか？")){
-    saveHistory();
-    state.scores=state.scores.map(()=>0);
-    render();
-  }
-}
+function saveHistory(){history.push(state.scores.slice());if(history.length>100)history.shift()}
+function undo(){if(!state.started||history.length===0){alert("戻せる操作がありません。");return}state.scores=history.pop();render()}
+function resetScores(){if(!state.started)return;if(confirm("ポイントだけ0Pにリセットしますか？")){saveHistory();state.scores=state.scores.map(()=>0);render()}}
 function renderSetup(){
-  $("nameInputs").innerHTML=state.names.map((n,i)=>`
-    <div style="margin-bottom:8px"><input data-name="${i}" value="${esc(n)}" aria-label="プレイヤー${i+1}の名前"></div>`).join("");
+  $("nameInputs").innerHTML=state.names.map((n,i)=>`<div style="margin-bottom:8px"><input data-name="${i}" value="${esc(n)}" aria-label="プレイヤー${i+1}の名前"></div>`).join("")
 }
+function playerName(i){return state.names[i]||`プレイヤー${i+1}`}
 function render(){
-  $("players").innerHTML=state.names.map((n,i)=>{
-    const s=state.scores[i],lost=s<=-5;
-    return `<article class="player ${lost?"lost":""}">
-      <div class="top"><span class="name">${esc(n)}</span><span class="score">${s>0?"+":""}${s}P</span></div>
-      ${lost?'<div style="font-weight:700;color:#b91c1c;margin-top:4px">負け</div>':""}
-      <div class="actions">
-        <button data-i="${i}" data-d="-1">−1P</button>
-        <button data-i="${i}" data-d="1">＋1P</button>
-      </div>
-    </article>`;
-  }).join("");
-  $("who").innerHTML=state.names.map((n,i)=>`<option value="${i}">${esc(n)}</option>`).join("");
-  renderCoverOptions();
+  $("players").innerHTML=state.names.map((n,i)=>{const s=state.scores[i],lost=s<=-5;return `<article class="player ${lost?'lost':''}" style="background:${colors[i%colors.length]};border-color:${colors[i%colors.length]}"><div class="top"><span class="name">${esc(n)}</span><span class="score">${s>0?'+':''}${s}P</span></div>${lost?'<div style="font-weight:700;color:#b91c1c;text-align:center">負け</div>':''}<div class="actions"><button data-i="${i}" data-d="-1">−1P</button><button data-i="${i}" data-d="1">＋1P</button></div></article>`}).join("");
+  renderNormalChoices();renderVictimChoices();renderCovererChoices();renderFailedChoices();
 }
-function renderCoverOptions(){
-  const victim=+$('victim').value;
-  $("victim").innerHTML=state.names.map((n,i)=>`<option value="${i}">${esc(n)}</option>`).join("");
-  if(Number.isInteger(victim) && victim>=0 && victim<state.names.length) $("victim").value=victim;
-  $("coverPlayers").innerHTML=state.names.map((n,i)=>`
-    <label style="display:flex;align-items:center;gap:9px;padding:9px 4px;font-size:16px;cursor:pointer;${i===+$('victim').value?"opacity:.45":""}">
-      <input type="checkbox" class="cover-check" value="${i}" ${i===+$('victim').value?"disabled":""}>
-      <span>${esc(n)}</span>
-    </label>`).join("");
+function choiceButton(i,cls="choice"){return `<button class="${cls}" data-player="${i}" style="background:${colors[i%colors.length]}">${esc(playerName(i))}</button>`}
+function renderNormalChoices(){$("normalChoices").innerHTML=state.names.map((_,i)=>choiceButton(i,"choice normal-choice")).join("")}
+function renderVictimChoices(){$("victimChoices").innerHTML=state.names.map((_,i)=>choiceButton(i,"choice victim-choice")).join("")}
+function renderCovererChoices(){
+  const victim=selectedVictim;
+  $("covererChoices").innerHTML=state.names.map((_,i)=>`<label class="check-item ${i===victim?'disabled':''}"><input type="checkbox" class="coverer-check" value="${i}" ${i===victim?'disabled':''}><span>${esc(playerName(i))}</span></label>`).join("");
+  updateConfirmButtons();
 }
-$("add").onclick=()=>{
-  if(state.names.length>=8)return;
-  state.names.push("プレイヤー"+(state.names.length+1));renderSetup();
-};
-$("start").onclick=()=>{
-  const inputs=[...document.querySelectorAll("[data-name]")];
-  const names=inputs.map((x,i)=>x.value.trim()||"プレイヤー"+(i+1));
-  state.names=names;state.scores=names.map(()=>0);state.started=true;
-  $("setup").classList.add("hidden");$("game").classList.remove("hidden");render();
-};
-$("action").addEventListener("change",()=>{
-  const cover=$("action").value==="cover";
-  $("coverOptions").classList.toggle("hidden",!cover);
-  $("who").classList.toggle("hidden",cover);
-  if(cover) renderCoverOptions();
-});
-$("victim").addEventListener("change",()=>{ if($("action").value==="cover") renderCoverOptions(); });
-$("players").addEventListener("click",e=>{
-  const b=e.target.closest("[data-i]");if(!b)return;
-  const i=+b.dataset.i;state.scores[i]=clamp(state.scores[i]+(+b.dataset.d));render();
-});
-$("apply").onclick=()=>{
-  const target=+$("who").value,action=$("action").value;
-  saveHistory();
-  if(action==="normal"){
-    state.scores=state.scores.map((s,i)=>clamp(s+(i===target?1:-1)));
-  }else if(action==="cover"){
-    const coverers=[...document.querySelectorAll(".cover-check:checked")].map(x=>+x.value);
-    const v=+$('victim').value;
-    if(coverers.length===0){history.pop();alert("被せに成功した人を1人以上チェックしてください。");return}
-    if(coverers.includes(v)){history.pop();alert("被せられた人にはチェックを入れられません。");return}
-    state.scores=state.scores.map((s,i)=>clamp(s+(coverers.includes(i)?2:i===v?-2:-1)));
-  }else{
-    state.scores[target]=clamp(state.scores[target]-2);
-  }
-  render();
-};
-$("undo").onclick=undo;
-$("scoreReset").onclick=resetScores;
-$("reset").onclick=()=>{
-  if(confirm("ゲームをリセットしますか？")){
-    state.names=["プレイヤー1","プレイヤー2","プレイヤー3","プレイヤー4"];
-    state.scores=[];state.started=false;history.length=0;
-    $("setup").classList.remove("hidden");$("game").classList.add("hidden");renderSetup();
-  }
-};
+function renderFailedChoices(){$("failedChoices").innerHTML=state.names.map((_,i)=>`<label class="check-item"><input type="checkbox" class="failed-check" value="${i}"><span>${esc(playerName(i))}</span></label>`).join("");updateConfirmButtons()}
+let selectedVictim=null;
+function hidePanels(){["normalPanel","coverPanel","failedPanel"].forEach(id=>$(id).classList.add("hidden"))}
+function openAction(action){
+  hidePanels();
+  if(action==="normal")$("normalPanel").classList.remove("hidden");
+  if(action==="cover"){selectedVictim=null;$("coverPanel").classList.remove("hidden");$("covererArea").classList.add("hidden");renderVictimChoices();}
+  if(action==="failed"){$("failedPanel").classList.remove("hidden");document.querySelectorAll(".failed-check").forEach(x=>x.checked=false);updateConfirmButtons()}
+  window.scrollTo({top:document.querySelector(".game-actions").offsetTop-10,behavior:"smooth"});
+}
+function updateConfirmButtons(){
+  const coverers=document.querySelectorAll(".coverer-check:checked").length;
+  const failed=document.querySelectorAll(".failed-check:checked").length;
+  $("coverConfirm").disabled=selectedVictim===null||coverers===0;
+  $("failedConfirm").disabled=failed===0;
+}
+function applyNormal(i){saveHistory();state.scores=state.scores.map((s,j)=>clamp(s+(j===i?1:-1)));hidePanels();render()}
+function applyCover(){
+  const coverers=[...document.querySelectorAll(".coverer-check:checked")].map(x=>+x.value);
+  if(selectedVictim===null||coverers.length===0)return;
+  saveHistory();state.scores=state.scores.map((s,i)=>clamp(s+(coverers.includes(i)?2:i===selectedVictim?-2:-1)));hidePanels();render();
+}
+function applyFailed(){
+  const failed=[...document.querySelectorAll(".failed-check:checked")].map(x=>+x.value);if(!failed.length)return;
+  saveHistory();state.scores=state.scores.map((s,i)=>clamp(s-(failed.includes(i)?2:0)));hidePanels();render();
+}
+$("add").onclick=()=>{if(state.names.length>=8)return;state.names.push("プレイヤー"+(state.names.length+1));renderSetup()};
+$("start").onclick=()=>{const inputs=[...document.querySelectorAll("[data-name]")];state.names=inputs.map((x,i)=>x.value.trim()||"プレイヤー"+(i+1));state.scores=state.names.map(()=>0);state.started=true;$("setup").classList.add("hidden");$("game").classList.remove("hidden");render()};
+$("normalAction").onclick=()=>openAction("normal");
+$("coverAction").onclick=()=>openAction("cover");
+$("failedAction").onclick=()=>openAction("failed");
+$("normalChoices").onclick=e=>{const b=e.target.closest(".normal-choice");if(b)applyNormal(+b.dataset.player)};
+$("victimChoices").onclick=e=>{const b=e.target.closest(".victim-choice");if(!b)return;selectedVictim=+b.dataset.player;$("covererArea").classList.remove("hidden");renderCovererChoices();b.scrollIntoView({behavior:"smooth",block:"center"})};
+$("covererChoices").addEventListener("change",updateConfirmButtons);
+$("failedChoices").addEventListener("change",updateConfirmButtons);
+$("coverConfirm").onclick=applyCover;
+$("failedConfirm").onclick=applyFailed;
+$("coverBack").onclick=()=>{selectedVictim=null;$("covererArea").classList.add("hidden");renderVictimChoices()};
+$("players").addEventListener("click",e=>{const b=e.target.closest("[data-i]");if(!b)return;const i=+b.dataset.i;saveHistory();state.scores[i]=clamp(state.scores[i]+(+b.dataset.d));render()});
+$("undo").onclick=undo;$("scoreReset").onclick=resetScores;
+$("reset").onclick=()=>{if(confirm("ゲームをリセットしますか？")){state.names=["プレイヤー1","プレイヤー2","プレイヤー3","プレイヤー4"];state.scores=[];state.started=false;history.length=0;hidePanels();$("setup").classList.remove("hidden");$("game").classList.add("hidden");renderSetup()}};
 renderSetup();
 </script>
 </body>
